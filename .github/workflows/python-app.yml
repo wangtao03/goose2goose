@@ -1,0 +1,30 @@
+name: goose2goose
+
+on:
+  watch:
+    types: started
+jobs:
+  setup:
+    env:
+      FAKE_HASH: "自动构建 @ $(date '+%Y-%m-%d %H:%M:%S')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.8"
+      - name: 安装依赖
+        run: |
+          sudo timedatectl set-timezone "Asia/Shanghai"
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: 创建PPTX
+        run: python ./main.py
+      - name: 设置 GIT 用户
+        uses: fregante/setup-git-user@v1
+      - name: 提交PPTX
+        run: |
+          git add pptxs/*.pptx
+          git add videos/*.pptx
+          git commit -m "${{ env.FAKE_HASH }}" 
+          git push -f
